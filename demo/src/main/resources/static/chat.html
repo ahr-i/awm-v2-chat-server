@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 애플리케이션</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        #chat-container {
+            width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        #chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .message {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .message-content {
+            word-wrap: break-word;
+        }
+
+        #message-form {
+            margin-top: 20px;
+        }
+
+        #message-input {
+            width: calc(100% - 70px);
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px 0 0 5px;
+        }
+
+        #message-input:focus {
+            outline: none;
+        }
+
+        #message-submit {
+            width: 60px;
+            padding: 8px;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        #message-submit:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div id="chat-container">
+    <div id="chat-messages"></div>
+    <form id="message-form">
+        <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+        <button type="submit" id="message-submit">전송</button>
+    </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script>
+    const socket = new WebSocket('ws://localhost:8080/connection');
+    const stompClient = Stomp.over(socket);
+
+    // STOMP 연결 설정
+    stompClient.connect({}, function() {
+        console.log('STOMP 연결 성공');
+        stompClient.subscribe('/sub/chat/room', function(message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageElement = document.createElement('div');
+            const messageData = JSON.parse(message.body);
+            const { nickName, message: content } = messageData; // 구조 분해 할당
+            messageElement.innerHTML = `<strong>${nickName}: </strong>${content}`; // HTML 구조로 메시지 생성
+            chatMessages.appendChild(messageElement);
+        });
+    });
+
+    // 폼 제출 시 채팅 메시지 전송
+    const form = document.getElementById('message-form');
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const messageInput = document.getElementById('message-input');
+        const messageContent = messageInput.value.trim();
+        if (messageContent !== '') {
+            // 닉네임을 입력받아 보내도록 수정
+            const nickName = prompt('닉네임을 입력하세요');
+            const message = {
+                nickName: nickName,
+                message: messageContent // message 키값으로 메시지 생성
+            };
+            stompClient.send('/pub/chat/message', {}, JSON.stringify(message));
+            messageInput.value = '';
+        }
+    });
+</script>
+</body>
+</html>
