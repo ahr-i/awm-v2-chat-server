@@ -4,8 +4,8 @@
 PROJECT_DIR="old/chat"
 NETWORK_NAME="host"
 #NETWORK_SUBNET="101.0.0.0/24"
-IMAGE_NAME="awm-v2-chat_server"
-CONTAINER_NAME="awm-v2-chat_server"
+IMAGE_NAME="awm-v2-chat-server"
+CONTAINER_NAME="awm-v2-chat-server"
 #CONTAINER_IP="101.0.0.2"
 
 # Step 1: Java Build
